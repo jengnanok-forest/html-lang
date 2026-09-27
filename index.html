@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML 圖片語法產生器與 CSS 技巧大全</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 自訂滾動條 style */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* 動畫過渡 */
+        .img-hover-zoom {
+            overflow: hidden;
+        }
+        .img-hover-zoom img {
+            transition: transform 0.5s ease;
+        }
+        .img-hover-zoom:hover img {
+            transform: scale(1.15);
+        }
+
+        .img-hover-overlay {
+            position: relative;
+            overflow: hidden;
+        }
+        .img-hover-overlay .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .img-hover-overlay:hover .overlay {
+            opacity: 1;
+        }
+
+        .img-hover-grayscale img {
+            filter: grayscale(100%);
+            transition: filter 0.4s ease;
+        }
+        .img-hover-grayscale:hover img {
+            filter: grayscale(0%);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen p-3 md:p-8 font-sans">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <!-- 頂部標題區塊 -->
+        <header class="bg-gradient-to-r from-indigo-700 via-blue-600 to-teal-600 text-white p-6 md:p-8 rounded-2xl shadow-xl">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold flex items-center gap-3">
+                        <i class="fa-solid fa-file-code text-teal-300"></i> HTML 圖片語法產生器 & CSS 技巧庫
+                    </h1>
+                    <p class="text-blue-100 text-sm md:text-base mt-2">一站式產生現代化 HTML 圖片標籤，並掌握高階 CSS 圖片排版與效能優化技巧</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <a href="#basic-framework" class="bg-white/20 hover:bg-white/30 text-white text-xs md:text-sm px-3 py-2 rounded-lg backdrop-blur transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-code"></i> 基本框架
+                    </a>
+                    <a href="#main-generator" class="bg-white/20 hover:bg-white/30 text-white text-xs md:text-sm px-3 py-2 rounded-lg backdrop-blur transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> 主產生器
+                    </a>
+                    <a href="#css-cheatsheet" class="bg-white/20 hover:bg-white/30 text-white text-xs md:text-sm px-3 py-2 rounded-lg backdrop-blur transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-image"></i> 圖片技巧
+                    </a>
+                    <a href="#text-video-cheatsheet" class="bg-teal-500 hover:bg-teal-400 text-white text-xs md:text-sm px-3 py-2 rounded-lg font-semibold shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-font"></i> 文字與影片
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- 最上方：基本網頁語法框架 (簡單不含預設內容) -->
+        <section id="basic-framework" class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
+                <h2 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-code text-indigo-400"></i> 基本 HTML 網頁框架
+                </h2>
+                <button onclick="copySnippet('code-basic-skeleton', this)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow">
+                    <i class="fa-regular fa-copy"></i> 複製基本框架
+                </button>
+            </div>
+            <div class="p-6 space-y-3">
+                <p class="text-xs text-slate-500">標準的 HTML5 最基礎開頭與結尾結構，無預設主體內容，可直接複製作為起手式：</p>
+                <pre id="code-basic-skeleton" class="bg-slate-900 text-emerald-400 p-4 rounded-xl text-xs font-mono overflow-x-auto leading-relaxed border border-slate-800">&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-TW"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;網頁標題&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;!-- 網頁內容放在這裡 --&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+            </div>
+        </section>
+
+        <!-- 主產生器區塊 -->
+        <section id="main-generator" class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
+                <h2 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i> 1. HTML 圖片語法產生器
+                </h2>
+                <span class="text-xs bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-2.5 py-1 rounded-full">即時預覽與生成</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+                <!-- 控制面板 -->
+                <div class="space-y-5">
+                    <!-- 上傳區塊 -->
+                    <div class="bg-slate-50 border-2 border-dashed border-indigo-200 hover:border-indigo-500 rounded-xl p-5 text-center transition cursor-pointer group" id="drop-zone">
+                        <input type="file" id="file-input" accept="image/*" class="hidden">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-500 group-hover:scale-110 transition-transform mb-2"></i>
+                        <p class="font-medium text-slate-700 text-sm">點擊上傳 或 將圖片拖曳至此</p>
+                        <p class="text-xs text-slate-400 mt-1">自動讀取圖片檔名並建立 Blob 預覽</p>
+                    </div>
+
+                    <!-- 基礎屬性 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">圖片檔名 / src 內容</label>
+                            <input type="text" id="src-input" value="hero-banner.jpg" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">替代文字 (alt) <span class="text-indigo-600">*SEO必備</span></label>
+                            <input type="text" id="alt-input" value="美麗的山川風景與日落" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- 尺寸屬性 -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">寬度 (Width)</label>
+                            <input type="text" id="width-input" placeholder="例如: 800 或 100%" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">高度 (Height)</label>
+                            <input type="text" id="height-input" placeholder="例如: 450 或 auto" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- 圓角 slider -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-semibold text-slate-600 mb-1">
+                            <span>圖片圓角 (border-radius)</span>
+                            <span id="radius-val" class="text-indigo-600 font-bold">12px</span>
+                        </div>
+                        <input type="range" id="radius-input" min="0" max="40" value="12" class="w-full accent-indigo-600">
+                    </div>
+
+                    <!-- 開關選項群組 -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
+                        <label class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium cursor-pointer">
+                            <input type="checkbox" id="lazy-check" checked class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-amber-500"></i>
+                                原生延遲載入 (<code class="bg-slate-200 px-1 rounded text-xs">loading="lazy" decoding="async"</code>)
+                            </span>
+                        </label>
+                        <label class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium cursor-pointer">
+                            <input type="checkbox" id="responsive-check" checked class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                            自適應寬度 (<code class="bg-slate-200 px-1 rounded text-xs">max-width: 100%; height: auto;</code>)
+                        </label>
+                        <label class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium cursor-pointer">
+                            <input type="checkbox" id="shadow-check" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                            陰影效果 (<code class="bg-slate-200 px-1 rounded text-xs">box-shadow</code>)
+                        </label>
+                        <label class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium cursor-pointer">
+                            <input type="checkbox" id="center-check" checked class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                            圖片置中顯示 (<code class="bg-slate-200 px-1 rounded text-xs">display: block; margin: auto</code>)
+                        </label>
+                    </div>
+
+                    <!-- 進階標籤 -->
+                    <div class="border-t pt-4 space-y-3">
+                        <div>
+                            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer mb-1">
+                                <input type="checkbox" id="link-check" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                                外層包覆超連結 (<code class="text-indigo-600">&lt;a&gt;</code>)
+                            </label>
+                            <input type="text" id="link-input" value="https://example.com" disabled class="w-full px-3 py-1.5 border rounded-lg text-xs bg-slate-100 opacity-60">
+                        </div>
+
+                        <div>
+                            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer mb-1">
+                                <input type="checkbox" id="figure-check" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                                使用圖說標籤 (<code class="text-indigo-600">&lt;figure&gt; &amp; &lt;figcaption&gt;</code>)
+                            </label>
+                            <input type="text" id="figcaption-input" value="圖 1：高山日落美麗景色" disabled class="w-full px-3 py-1.5 border rounded-lg text-xs bg-slate-100 opacity-60">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 預覽與程式碼匯出區 -->
+                <div class="flex flex-col justify-between space-y-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-eye text-indigo-600"></i> 即時畫面預覽
+                        </h3>
+                        <div class="bg-slate-100 border border-slate-200 rounded-xl p-4 min-h-[220px] max-h-[300px] flex items-center justify-center overflow-hidden" id="preview-container">
+                            <img id="preview-img" src="https://picsum.photos/id/1015/600/380" alt="美麗的山川風景與日落" class="rounded-lg max-w-full max-h-[260px] object-cover transition-all shadow-md">
+                        </div>
+                    </div>
+
+                    <!-- 程式碼輸出 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-code text-indigo-600"></i> 生成 HTML 程式碼
+                            </h3>
+                            <button id="copy-main-btn" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow">
+                                <i class="fa-regular fa-copy"></i> 複製語法
+                            </button>
+                        </div>
+                        <pre class="bg-slate-900 text-emerald-400 p-4 rounded-xl text-xs font-mono overflow-x-auto whitespace-pre-wrap border border-slate-800 leading-relaxed min-h-[120px]" id="code-output"></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 常見圖片語法與 CSS 技巧區塊 (Cheat Sheet) -->
+        <section id="css-cheatsheet" class="space-y-6">
+            <div class="bg-slate-800 text-white p-6 rounded-2xl shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold flex items-center gap-2.5">
+                        <i class="fa-solid fa-book-bookmark text-amber-400"></i> 2. 常見圖片語法與 CSS 實用技巧庫
+                    </h2>
+                    <p class="text-slate-300 text-xs md:text-sm mt-1">整理網頁前端開發中最常用的圖片排版、響應式載入與動畫效果</p>
+                </div>
+                <div class="text-xs bg-slate-700 px-3 py-1.5 rounded-lg text-slate-300 border border-slate-600">
+                    點擊按鈕即可一鍵複製語法
+                </div>
+            </div>
+
+            <!-- 卡片網格區塊 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- 技巧 1: HTML5 <picture> 響應式與適應式圖片 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col justify-between">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-md font-mono">HTML5</span>
+                                &lt;picture&gt; 響應式與新一代格式
+                            </h3>
+                            <i class="fa-solid fa-mobile-screen-button text-slate-400"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            針對不同螢幕尺寸載入不同比例圖片（Art Direction），並能優先載入體積更小的 <b>WebP/AVIF</b> 格式，不支援時自動退避 (Fallback) 至 JPG。
+                        </p>
+
+                        <div class="bg-slate-50 p-3 rounded-lg text-xs space-y-1 text-slate-700 border">
+                            <div><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> <b>特點：</b>節省手機行動網路流量</div>
+                            <div><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> <b>優勢：</b>桌機用橫圖、手機載入直圖</div>
+                        </div>
+
+                        <!-- 程式碼 -->
+                        <div class="relative group">
+                            <button onclick="copySnippet('code-picture', this)" class="absolute top-2 right-2 bg-slate-800/80 hover:bg-indigo-600 text-white text-[10px] px-2 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i> 複製
+                            </button>
+                            <pre id="code-picture" class="bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono overflow-x-auto leading-normal">&lt;picture&gt;
+  &lt;!-- 手機版使用 WebP 橫圖 --&gt;
+  &lt;source media="(max-width: 640px)" srcset="mobile.webp" type="image/webp"&gt;
+  &lt;!-- 桌機版使用高解析度 AVIF --&gt;
+  &lt;source media="(min-width: 641px)" srcset="desktop.avif" type="image/avif"&gt;
+  &lt;!-- 不支援 picture 標籤時的預設退避 --&gt;
+  &lt;img src="default.jpg" alt="響應式圖片範例" loading="lazy" class="w-full h-auto"&gt;
+&lt;/picture&gt;</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技巧 2: CSS background-image 背景圖語法 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col justify-between">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-md font-mono">CSS</span>
+                                background-image 背景圖與黑罩層
+                            </h3>
+                            <i class="fa-solid fa-image text-slate-400"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            適用於 Hero Banner 或區塊背景。透過 <code class="bg-slate-100 px-1 rounded">background-size: cover</code> 滿版縮放，並疊加半透明黑罩層以提升白字可讀性。
+                        </p>
+
+                        <!-- 即時動態預覽 -->
+                        <div class="h-20 rounded-lg overflow-hidden flex items-center justify-center text-white font-bold text-xs relative shadow-inner" 
+                             style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://picsum.photos/id/1039/500/200') center/cover no-repeat;">
+                            Hero Banner 標題文字範例
+                        </div>
+
+                        <!-- 程式碼 -->
+                        <div class="relative group">
+                            <button onclick="copySnippet('code-bg-img', this)" class="absolute top-2 right-2 bg-slate-800/80 hover:bg-indigo-600 text-white text-[10px] px-2 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i> 複製
+                            </button>
+                            <pre id="code-bg-img" class="bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono overflow-x-auto leading-normal">/* CSS 語法 */
+.hero-banner {
+  background-image: 
+    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+    url('hero.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100%;
+  min-height: 350px;
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技巧 3: CSS object-fit 圖片裁切語法 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col justify-between">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <span class="bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-md font-mono">CSS</span>
+                                object-fit 圖片防變形裁切
+                            </h3>
+                            <i class="fa-solid fa-crop-simple text-slate-400"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            解決固定容器尺寸（如 200x200 頭像或卡片圖）導致圖片拉伸變形的問題。
+                        </p>
+
+                        <!-- 可互動測試面板 -->
+                        <div class="flex items-center gap-4 bg-slate-50 p-2.5 rounded-lg border">
+                            <div class="w-24 h-20 bg-slate-300 rounded border overflow-hidden shrink-0">
+                                <img id="object-fit-demo-img" src="https://picsum.photos/id/1025/300/200" class="w-full h-full object-cover transition-all" alt="Demo">
+                            </div>
+                            <div class="space-y-1 text-xs">
+                                <div class="font-semibold text-slate-700">即時切換測試：</div>
+                                <div class="flex flex-wrap gap-1">
+                                    <button onclick="setObjectFit('cover')" class="bg-slate-200 hover:bg-indigo-600 hover:text-white px-2 py-0.5 rounded text-[11px] transition">cover</button>
+                                    <button onclick="setObjectFit('contain')" class="bg-slate-200 hover:bg-indigo-600 hover:text-white px-2 py-0.5 rounded text-[11px] transition">contain</button>
+                                    <button onclick="setObjectFit('fill')" class="bg-slate-200 hover:bg-indigo-600 hover:text-white px-2 py-0.5 rounded text-[11px] transition">fill</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 程式碼 -->
+                        <div class="relative group">
+                            <button onclick="copySnippet('code-object-fit', this)" class="absolute top-2 right-2 bg-slate-800/80 hover:bg-indigo-600 text-white text-[10px] px-2 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i> 複製
+                            </button>
+                            <pre id="code-object-fit" class="bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono overflow-x-auto leading-normal">/* 保持比例填滿並自動裁切多餘邊界 */
+.avatar-or-card-img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;    /* cover | contain | fill | scale-down */
+  object-position: center; /* 焦點位置 */
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技巧 4: CSS Hover 放大 / 遮罩動畫效果 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col justify-between">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <span class="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-md font-mono">Animation</span>
+                                Hover 放大與遮罩動畫效果
+                            </h3>
+                            <i class="fa-solid fa-wand-magic-sparkles text-slate-400"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            提升相簿與產品卡片互動感，滑鼠懸停時進行平滑放大或浮現資訊文字。
+                        </p>
+
+                        <!-- 互動預覽 (滑鼠移上去測試) -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="img-hover-zoom rounded-lg h-20 bg-slate-200 relative cursor-pointer border">
+                                <img src="https://picsum.photos/id/1069/200/150" class="w-full h-full object-cover" alt="Zoom">
+                                <span class="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">放大效果</span>
+                            </div>
+                            <div class="img-hover-overlay rounded-lg h-20 bg-slate-200 relative cursor-pointer border">
+                                <img src="https://picsum.photos/id/1062/200/150" class="w-full h-full object-cover" alt="Overlay">
+                                <div class="overlay text-white text-xs font-semibold">看更多詳情 <i class="fa-solid fa-arrow-right ml-1"></i></div>
+                                <span class="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">遮罩效果</span>
+                            </div>
+                        </div>
+
+                        <!-- 程式碼 -->
+                        <div class="relative group">
+                            <button onclick="copySnippet('code-hover-effect', this)" class="absolute top-2 right-2 bg-slate-800/80 hover:bg-indigo-600 text-white text-[10px] px-2 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i> 複製
+                            </button>
+                            <pre id="code-hover-effect" class="bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono overflow-x-auto leading-normal">/* 1. 外層容器必須設定 overflow: hidden */
+.img-container {
+  overflow: hidden;
+  border-radius: 8px;
+}
+/* 2. 圖片加上 transition 與 transform */
+.img-container img {
+  transition: transform 0.4s ease;
+}
+.img-container:hover img {
+  transform: scale(1.1); /* Hover 時放大 1.1 倍 */
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技巧 5: 原生 Lazy Loading 延遲載入與效能優化 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col justify-between">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-md font-mono">Performance</span>
+                                Lazy Loading 與防版面位移 (CLS)
+                            </h3>
+                            <i class="fa-solid fa-gauge-high text-slate-400"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Google 網頁體驗指標的核心！設定 <code class="bg-slate-100 px-1 rounded">loading="lazy"</code> 可讓未捲動到的圖片延後載入，同時指定 <code class="bg-slate-100 px-1 rounded">width/height</code> 或 CSS <code class="bg-slate-100 px-1 rounded">aspect-ratio</code> 避免圖片載入時推擠畫面的 CLS 問題。
+                        </p>
+
+                        <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-lg text-xs text-amber-800 space-y-1">
+                            <div><i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> <b>注意事項：</b>頁面最上方首圖 (LCP 圖片) <b>不要</b>加 lazy loading，應設 <code class="bg-amber-100 px-1 rounded">fetchpriority="high"</code>。</div>
+                        </div>
+
+                        <!-- 程式碼 -->
+                        <div class="relative group">
+                            <button onclick="copySnippet('code-lazy-perf', this)" class="absolute top-2 right-2 bg-slate-800/80 hover:bg-indigo-600 text-white text-[10px] px-2 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i> 複製
+                            </button>
+                            <pre id="code-lazy-perf" class="bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono overflow-x-auto leading-normal">&lt;!-- 現代化標準高效能圖片標籤範例 --&gt;
+&lt;img src="photo.jpg" 
+     alt="說明文字" 
+     width="800" 
+     height="450" 
+     loading="lazy" 
+     decoding="async"
+     style="aspect-ratio: 16/9; width: 100%; height: auto;"&gt;</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技巧 6: CSS Grid 響應式相簿排版語法 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col justify-between">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <span class="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-md font-mono">CSS Grid</span>
+                                響應式相簿與作品集網格
+                            </h3>
+                            <i class="fa-solid fa-table-cells text-slate-400"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            無需寫繁瑣的 Media Query 媒體查詢！使用 <code class="bg-slate-100 px-1 rounded">repeat(auto-fill, minmax(180px, 1fr))</code> 自動依螢幕寬度排列照片。
+                        </p>
+
+                        <!-- 小型即時相簿預覽 -->
+                        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-lg border">
+                            <img src="https://picsum.photos/id/1040/150/100" class="w-full h-12 object-cover rounded shadow-sm" alt="Gallery 1">
+                            <img src="https://picsum.photos/id/1043/150/100" class="w-full h-12 object-cover rounded shadow-sm" alt="Gallery 2">
+                            <img src="https://picsum.photos/id/1047/150/100" class="w-full h-12 object-cover rounded shadow-sm" alt="Gallery 3">
+                        </div>
+
+                        <!-- 程式碼 -->
+                        <div class="relative group">
+                            <button onclick="copySnippet('code-grid-gallery', this)" class="absolute top-2 right-2 bg-slate-800/80 hover:bg-indigo-600 text-white text-[10px] px-2 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i> 複製
+                            </button>
+                            <pre id="code-grid-gallery" class="bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono overflow-x-auto leading-normal">/* 相簿外層容器 */
+.photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* 相簿內圖片固定比例與裁切 */
+.photo-gallery img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 下方新增：文字樣式與影片連結語法區塊 -->
+        <!-- ========================================== -->
+        <section id="text-video-cheatsheet" class="space-y-6">
+            <div class="bg-slate-800 text-white p-6 rounded-2xl shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold flex items-center gap-2.5">
+                        <i class="fa-solid fa-font text-teal-400"></i> 3. 文字樣式與影片連結語法庫
+                    </h2>
+                    <p class="text-slate-300 text-xs md:text-sm mt-1">收錄常用的文字色彩排版、超連結以及多種影片嵌入／連結語法</p>
+                </div>
+                <div class="text-xs bg-slate-700 px-3 py-1.5 rounded-lg text-slate-300 border border-slate-600">
+                    點擊按鈕即可一鍵複製語法
+                </div>
+            </div>
+
+            <!-- 卡片網格區塊 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- 1. 文字大小、顏色與超連結 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col justify-between">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <span class="bg-pink-100 text-pink-700 text-xs px-2 py-0.5 rounded-md font-mono">Text &amp; Link</span>
+                                文字大小、顏色與文字連結語法
+                            </h3>
+                            <i class="fa-solid fa-pen-nib text-slate-400"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            透過 CSS 屬性調整文字大小 (<code class="bg-slate-100 px-1 rounded">font-size</code>)、顏色 (<code class="bg-slate-100 px-1 rounded">color</code>) 與底線等樣式，並設定新頁籤開啟超連結。
+                        </p>
+
+                        <!-- 即時預覽 -->
+                        <div class="bg-slate-50 p-3 rounded-lg border space-y-1.5 text-xs">
+                            <p style="font-size: 18px; color: #ef4444; font-weight: bold;">這是 18px 紅色標題字體</p>
+                            <p style="font-size: 13px; color: #2563eb;">這是 13px 藍色說明內文</p>
+                            <a href="https://example.com" target="_blank" style="color: #059669; text-decoration: underline; font-weight: 600;">點此前往外部連結 (開啟新分頁) ➔</a>
+                        </div>
+
+                        <!-- 程式碼 -->
+                        <div class="relative group">
+                            <button onclick="copySnippet('code-text-link', this)" class="absolute top-2 right-2 bg-slate-800/80 hover:bg-indigo-600 text-white text-[10px] px-2 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i> 複製
+                            </button>
+                            <pre id="code-text-link" class="bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono overflow-x-auto leading-normal">&lt;!-- 1. 調整文字大小與顏色 --&gt;
+&lt;p style="font-size: 18px; color: #ef4444; font-weight: bold;"&gt;紅色大標題&lt;/p&gt;
+&lt;p style="font-size: 14px; color: #2563eb;"&gt;藍色內文段落&lt;/p&gt;
+
+&lt;!-- 2. 文字超連結 (target="_blank" 為開啟新分頁) --&gt;
+&lt;a href="https://example.com" target="_blank" rel="noopener noreferrer" style="color: #059669; text-decoration: underline; font-weight: bold;"&gt;
+  點此造訪官方網站
+&lt;/a&gt;</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. HTML5 原生影片播放器 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col justify-between">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <span class="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-md font-mono">HTML5 Video</span>
+                                HTML5 原生影片播放器語法
+                            </h3>
+                            <i class="fa-solid fa-file-video text-slate-400"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            適用於伺服器上的 MP4/WebM 影片檔。包含播放控制面板 (<code class="bg-slate-100 px-1 rounded">controls</code>)、預覽封面圖 (<code class="bg-slate-100 px-1 rounded">poster</code>) 與自動靜音播放。
+                        </p>
+
+                        <!-- 程式碼 -->
+                        <div class="relative group">
+                            <button onclick="copySnippet('code-html5-video', this)" class="absolute top-2 right-2 bg-slate-800/80 hover:bg-indigo-600 text-white text-[10px] px-2 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i> 複製
+                            </button>
+                            <pre id="code-html5-video" class="bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono overflow-x-auto leading-normal">&lt;!-- HTML5 原生影片標籤 --&gt;
+&lt;video controls poster="video-cover.jpg" width="100%" style="max-width: 800px; border-radius: 8px;"&gt;
+  &lt;source src="my-video.mp4" type="video/mp4"&gt;
+  &lt;source src="my-video.webm" type="video/webm"&gt;
+  您的瀏覽器不支援 HTML5 影片播放。
+&lt;/video&gt;
+
+&lt;!-- 自動靜音循環播放 (常用於背景影片) --&gt;
+&lt;video autoplay loop muted playsinline width="100%"&gt;
+  &lt;source src="bg-video.mp4" type="video/mp4"&gt;
+&lt;/video&gt;</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. YouTube / 平台影片 16:9 響應式嵌入 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col justify-between md:col-span-2">
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-md font-mono">YouTube &amp; Link</span>
+                                YouTube / 串流平台影片嵌入與按鈕連結語法
+                            </h3>
+                            <i class="fa-brands fa-youtube text-red-600"></i>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            收錄兩種最常見情境：以 <b>16:9 比例無縫嵌入網頁</b>，或是建立<b>漂亮的影片點擊跳轉按鈕</b>。
+                        </p>
+
+                        <!-- 即時預覽按鈕 -->
+                        <div class="bg-slate-50 p-3 rounded-lg border flex flex-wrap items-center gap-3">
+                            <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg font-bold shadow transition">
+                                <i class="fa-brands fa-youtube text-sm"></i> 點此前往 YouTube 觀看影片
+                            </a>
+                            <span class="text-xs text-slate-400">← 影片連結按鈕範例</span>
+                        </div>
+
+                        <!-- 程式碼 -->
+                        <div class="relative group">
+                            <button onclick="copySnippet('code-youtube-embed', this)" class="absolute top-2 right-2 bg-slate-800/80 hover:bg-indigo-600 text-white text-[10px] px-2 py-1 rounded transition">
+                                <i class="fa-regular fa-copy"></i> 複製
+                            </button>
+                            <pre id="code-youtube-embed" class="bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono overflow-x-auto leading-normal">&lt;!-- 1. 16:9 響應式 YouTube 影片嵌入 (使用 CSS aspect-ratio) --&gt;
+&lt;iframe 
+  src="https://www.youtube.com/embed/VIDEO_ID" 
+  title="YouTube 影片播放器" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+  allowfullscreen
+  style="width: 100%; aspect-ratio: 16 / 9; border-radius: 8px;"&gt;
+&lt;/iframe&gt;
+
+&lt;!-- 2. 影片超連結按鈕 (點擊另開新分頁跳轉至影片頁) --&gt;
+&lt;a href="https://www.youtube.com/watch?v=VIDEO_ID" 
+   target="_blank" 
+   rel="noopener noreferrer" 
+   style="display: inline-block; padding: 10px 20px; background-color: #ff0000; color: #ffffff; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;"&gt;
+  ▶ 點此前往觀看完整影片
+&lt;/a&gt;</pre>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 頁尾聲明 -->
+        <footer class="text-center text-xs text-slate-400 py-6 border-t border-slate-200">
+            HTML 圖片語法產生器與 CSS 技巧工具箱 &copy; 2026. Designed for Web Developers.
+        </footer>
+    </div>
+
+    <script>
+        // DOM 元素引用
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const srcInput = document.getElementById('src-input');
+        const altInput = document.getElementById('alt-input');
+        const widthInput = document.getElementById('width-input');
+        const heightInput = document.getElementById('height-input');
+        const radiusInput = document.getElementById('radius-input');
+        const radiusVal = document.getElementById('radius-val');
+        const lazyCheck = document.getElementById('lazy-check');
+        const responsiveCheck = document.getElementById('responsive-check');
+        const shadowCheck = document.getElementById('shadow-check');
+        const centerCheck = document.getElementById('center-check');
+        const linkCheck = document.getElementById('link-check');
+        const linkInput = document.getElementById('link-input');
+        const figureCheck = document.getElementById('figure-check');
+        const figcaptionInput = document.getElementById('figcaption-input');
+        
+        const previewImg = document.getElementById('preview-img');
+        const previewContainer = document.getElementById('preview-container');
+        const codeOutput = document.getElementById('code-output');
+        const copyMainBtn = document.getElementById('copy-main-btn');
+
+        let currentObjectUrl = null;
+
+        // 檔案上傳事件處理
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // 拖曳上傳效果
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-indigo-500', 'bg-indigo-50/50');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('請選擇正確的圖片檔案格式！', 'error');
+                return;
+            }
+
+            srcInput.value = file.name;
+
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+            }
+
+            currentObjectUrl = URL.createObjectURL(file);
+            previewImg.src = currentObjectUrl;
+
+            updateCode();
+        }
+
+        // 開關連動啟用/停用
+        linkCheck.addEventListener('change', () => {
+            linkInput.disabled = !linkCheck.checked;
+            linkInput.classList.toggle('opacity-60', !linkCheck.checked);
+            linkInput.classList.toggle('bg-slate-100', !linkCheck.checked);
+            updateCode();
+        });
+
+        figureCheck.addEventListener('change', () => {
+            figcaptionInput.disabled = !figureCheck.checked;
+            figcaptionInput.classList.toggle('opacity-60', !figureCheck.checked);
+            figcaptionInput.classList.toggle('bg-slate-100', !figureCheck.checked);
+            updateCode();
+        });
+
+        // 監聽輸入屬性變更
+        [srcInput, altInput, widthInput, heightInput, radiusInput, lazyCheck, responsiveCheck, shadowCheck, centerCheck, linkInput, figcaptionInput].forEach(el => {
+            el.addEventListener('input', updateCode);
+            el.addEventListener('change', updateCode);
+        });
+
+        // 核心計算與 HTML 語法生成邏輯
+        function updateCode() {
+            const src = srcInput.value.trim() || 'image.jpg';
+            const alt = altInput.value.trim();
+            const width = widthInput.value.trim();
+            const height = heightInput.value.trim();
+            const radius = radiusInput.value;
+            radiusVal.textContent = `${radius}px`;
+
+            // Inline CSS 陣列
+            let styles = [];
+            if (responsiveCheck.checked) {
+                styles.push('max-width: 100%');
+                styles.push('height: auto');
+            }
+            if (radius > 0) {
+                styles.push(`border-radius: ${radius}px`);
+            }
+            if (shadowCheck.checked) {
+                styles.push('box-shadow: 0 4px 12px rgba(0,0,0,0.15)');
+            }
+            if (centerCheck.checked && !figureCheck.checked) {
+                styles.push('display: block');
+                styles.push('margin: 0 auto');
+            }
+
+            // 組合 img 屬性
+            let imgAttrs = `src="${src}"`;
+            if (alt) imgAttrs += ` alt="${alt}"`;
+            if (width) imgAttrs += ` width="${width}"`;
+            if (height) imgAttrs += ` height="${height}"`;
+            
+            // 原生 Lazy Loading 選項
+            if (lazyCheck.checked) {
+                imgAttrs += ` loading="lazy" decoding="async"`;
+            }
+
+            if (styles.length > 0) {
+                imgAttrs += ` style="${styles.join('; ')};"`;
+            }
+
+            let imgTag = `<img ${imgAttrs}>`;
+
+            // 包覆 <a> 超連結
+            if (linkCheck.checked) {
+                const href = linkInput.value.trim() || '#';
+                imgTag = `<a href="${href}" target="_blank" rel="noopener noreferrer">\n  ${imgTag}\n</a>`;
+            }
+
+            // 包覆 <figure> 圖說標籤
+            if (figureCheck.checked) {
+                const figcaption = figcaptionInput.value.trim();
+                let figureStyle = centerCheck.checked ? ' style="text-align: center;"' : '';
+                imgTag = `<figure${figureStyle}>\n  ${imgTag.replace(/\n/g, '\n  ')}\n  <figcaption style="margin-top: 8px; font-size: 0.875rem; color: #64748b;">${figcaption}</figcaption>\n</figure>`;
+            }
+
+            // 即時更新畫面預覽樣式
+            previewImg.style.borderRadius = `${radius}px`;
+            previewImg.style.boxShadow = shadowCheck.checked ? '0 4px 12px rgba(0,0,0,0.15)' : 'none';
+            previewContainer.style.textAlign = centerCheck.checked ? 'center' : 'left';
+
+            // 顯示最終 HTML
+            codeOutput.textContent = imgTag;
+        }
+
+        // 主產生器一鍵複製
+        copyMainBtn.addEventListener('click', () => {
+            copyToClipboard(codeOutput.textContent, copyMainBtn);
+        });
+
+        // 通用複製函式
+        function copySnippet(elementId, btnEl) {
+            const codeText = document.getElementById(elementId).textContent;
+            copyToClipboard(codeText, btnEl);
+        }
+
+        function copyToClipboard(text, btnEl) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopiedUI(btnEl);
+                }).catch(() => {
+                    fallbackCopy(text, btnEl);
+                });
+            } else {
+                fallbackCopy(text, btnEl);
+            }
+        }
+
+        function fallbackCopy(text, btnEl) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showCopiedUI(btnEl);
+            } catch (err) {
+                console.error('複製失敗:', err);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showCopiedUI(btnEl) {
+            const originalText = btnEl.innerHTML;
+            btnEl.innerHTML = '<i class="fa-solid fa-check"></i> 已複製！';
+            btnEl.classList.add('bg-emerald-600');
+            setTimeout(() => {
+                btnEl.innerHTML = originalText;
+                btnEl.classList.remove('bg-emerald-600');
+            }, 1800);
+        }
+
+        // 技巧 3: Object-fit 互動切換範例
+        function setObjectFit(mode) {
+            const demoImg = document.getElementById('object-fit-demo-img');
+            demoImg.style.objectFit = mode;
+        }
+
+        // 頁面初次渲染初始化
+        updateCode();
+    </script>
+</body>
+</html>
