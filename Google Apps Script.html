@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Apps Script 網頁部署互動式圖解教學</title>
+  <!-- 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 載入 Google Fonts: Noto Sans TC, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '"Noto Sans TC"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            gblue: {
+              DEFAULT: '#1a73e8',
+              dark: '#1557b0',
+              light: '#e8f0fe',
+            },
+            gred: {
+              DEFAULT: '#ea4335',
+              light: '#fce8e6',
+            },
+            ggreen: {
+              DEFAULT: '#1e8e3e',
+              light: '#e6f4ea',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* 自訂捲軸樣式，提升程式碼與模擬視窗質感 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* 紅色動態高亮熱點呼吸燈效果 */
+    @keyframes hotspot-pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.75);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(234, 67, 53, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(234, 67, 53, 0);
+      }
+    }
+
+    .hotspot-box {
+      border: 2.5px solid #ea4335;
+      animation: hotspot-pulse 1.8s infinite;
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+    .hotspot-box:hover {
+      transform: scale(1.02);
+    }
+
+    /* 氣泡提示微幅上下浮動動畫 */
+    @keyframes float-badge {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-3px);
+      }
+    }
+    .animate-float {
+      animation: float-badge 2s ease-in-out infinite;
+    }
+
+    /* 畫面切換淡入動畫 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- ==================== 頂部導覽列與進度條 ==================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <!-- 品牌標題區 -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gblue text-white flex items-center justify-center shadow-sm shrink-0">
+              <!-- Apps Script 火箭/程式碼圖示 -->
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-tight">
+                Google Apps Script 網頁部署互動式圖解教學
+              </h1>
+              <p class="text-xs text-slate-500 hidden sm:block">
+                點擊右側模擬畫面中的<span class="text-gred font-semibold">紅色動態框線</span>即可模擬操作並自動推進步驟（支援鍵盤 ← → 鍵）
+              </p>
+            </div>
+          </div>
+
+          <!-- 手機版快速切換按鈕 -->
+          <div class="flex items-center gap-1.5 md:hidden">
+            <button onclick="prevStep()" id="mobile-prev-btn" class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40" aria-label="上一步">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span id="mobile-step-badge" class="text-xs font-bold px-2.5 py-1.5 rounded-lg bg-gblue-light text-gblue">1 / 6</span>
+            <button onclick="nextStep()" id="mobile-next-btn" class="p-2 rounded-lg bg-gblue text-white hover:bg-gblue-dark disabled:opacity-40" aria-label="下一步">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 桌面版步驟切換控制鈕 -->
+        <div class="hidden md:flex items-center gap-2">
+          <button onclick="prevStep()" id="desktop-prev-btn" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            上一步
+          </button>
+          <button onclick="nextStep()" id="desktop-next-btn" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gblue text-white text-sm font-medium hover:bg-gblue-dark shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed">
+            下一步
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 六大步驟進度導覽列 -->
+      <nav aria-label="教學步驟進度" class="mt-3 pt-2.5 border-t border-slate-100">
+        <div id="step-nav-container" class="grid grid-cols-6 gap-1.5 sm:gap-2">
+          <!-- 由 JavaScript 動態渲染 6 個步驟按鈕 -->
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ==================== 主內容雙欄互動區 ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 sm:py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- 左側欄：文字操作指引、注意事項與一鍵複製程式碼 (佔 5 欄) -->
+      <section class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 flex flex-col gap-5" id="left-guide-panel">
+        <!-- 由 JavaScript 動態渲染當前步驟的詳細說明 -->
+      </section>
+
+      <!-- 右側欄：高擬真互動操作畫面模擬區 (佔 7 欄) -->
+      <section class="lg:col-span-7 flex flex-col gap-3">
+        <!-- 模擬器上方狀態控制列 -->
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-700">
+            <span class="inline-flex h-2.5 w-2.5 rounded-full bg-gred animate-ping"></span>
+            <span id="mockup-instruction-banner">互動提示：請點擊下方畫面中紅框標示的位置</span>
+          </div>
+          <button onclick="resetCurrentStepInteraction()" class="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-gblue px-2.5 py-1 rounded-lg hover:bg-slate-100 transition" title="重播此步驟畫面狀態">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            重播本步驟動畫
+          </button>
+        </div>
+
+        <!-- 模擬瀏覽器外框容器 -->
+        <div class="bg-white rounded-2xl border border-slate-300 shadow-lg overflow-hidden">
+          <!-- 擬真瀏覽器頂部標籤與網址列 -->
+          <div class="bg-slate-200/90 px-3 pt-2.5 pb-2 border-b border-slate-300 select-none">
+            <div class="flex items-center gap-2 mb-2">
+              <!-- macOS / 瀏覽器三色視窗控制點 -->
+              <div class="flex items-center gap-1.5 mr-2">
+                <span class="w-3 h-3 rounded-full bg-rose-400 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>
+              </div>
+              <!-- 瀏覽器分頁標籤 -->
+              <div id="browser-tab-title" class="bg-white text-slate-700 text-xs font-medium px-3.5 py-1.5 rounded-t-lg shadow-sm flex items-center gap-2 max-w-[260px] truncate">
+                <!-- 由 JS 動態切換分頁圖示與標題 -->
+              </div>
+            </div>
+            <!-- 網址列 -->
+            <div class="flex items-center gap-2 bg-white rounded-full px-3.5 py-1 text-xs text-slate-500 border border-slate-300/80 shadow-inner">
+              <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+              </svg>
+              <span id="browser-url-bar" class="font-mono truncate text-[11px] sm:text-xs text-slate-600">https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/edit</span>
+            </div>
+          </div>
+
+          <!-- 模擬器核心畫布區（支援橫向捲動保護小螢幕不破版） -->
+          <div id="mockup-canvas" class="relative bg-white min-h-[460px] sm:min-h-[500px] overflow-x-auto">
+            <!-- 由 JavaScript 動態渲染 6 個步驟的互動操作畫面 -->
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ==================== 浮動 Toast 複製成功通知 ==================== -->
+  <div id="toast-notification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-sm font-medium">
+      <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+      <span id="toast-message">已複製程式碼到剪貼簿！</span>
+    </div>
+  </div>
+
+  <!-- ==================== 核心互動邏輯腳本 ==================== -->
+  <script>
+    // 1. 常用程式碼範本定義
+    const UNIVERSAL_GS_CODE = `function doGet(e) {
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setTitle('我的網頁應用程式')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}`;
+
+    const SAMPLE_HTML_CODE = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>我的第一個 GAS 網頁</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 40px; background: #f0f4f8; }
+    .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); max-width: 440px; margin: auto; }
+    h1 { color: #1a73e8; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎉 網頁部署成功！</h1>
+    <p>這個靜態 HTML 網頁正透過 Google Apps Script 免費託管運行中。</p>
+  </div>
+</body>
+</html>`;
+
+    const DEMO_EXEC_URL = 'https://script.google.com/macros/s/AKfycbx9876543210_WebAppDemo/exec';
+
+    // 2. 六大步驟教學資料結構
+    const STEPS_DATA = [
+      {
+        id: 1,
+        shortTitle: '開啟編輯器',
+        title: '步驟 1：從試算表開啟 Apps Script',
+        summary: '開啟任一 Google 文件或 Google 試算表，透過上方工具列進入 Google Apps Script 雲端程式編輯器。',
+        instructions: [
+          '開啟你的 Google 試算表（或新建一份空白試算表）。',
+          '點選上方功能選單列的 <strong class="text-slate-900">「擴充功能」</strong>。',
+          '在展開的下拉選單中，點擊 <strong class="text-gblue">「Apps Script」</strong>，系統將自動開啟專屬的腳本編輯器分頁。'
+        ],
+        tipTitle: '為什麼要從試算表開啟？',
+        tipContent: '從試算表開啟的 Apps Script 稱為「容器繫結腳本」，未來若想擴充「網頁表單寫入試算表」或「讀取試算表資料」功能時，可以直接使用 getActiveSpreadsheet() 串接，非常方便！',
+        mockupHint: '請點擊右側試算表選單中的「Apps Script」進入下一步'
+      },
+      {
+        id: 2,
+        shortTitle: '貼上萬用.gs',
+        title: '步驟 2：清空程式碼.gs 並貼上「萬用.gs」',
+        summary: '將預設的空白函式清除，貼入負責回傳網頁畫面的核心 doGet(e) 程式碼。',
+        instructions: [
+          '確認左側「檔案」清單目前選取的是 <code class="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono">程式碼.gs</code>。',
+          '全選（<kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-xs">Ctrl + A</kbd>）並清空原本的 <code class="text-xs font-mono">function myFunction() {}</code>。',
+          '複製下方的「萬用.gs」程式碼並貼上。這段程式碼能讓手機自適應縮放，並允許網頁被嵌入至其他網站的 iframe 中。'
+        ],
+        tipTitle: '核心函式名稱不可更改',
+        tipContent: '函式名稱必須固定為 doGet(e)，這是 Google 伺服器接收到瀏覽器網址請求時的預設進入點。',
+        codeBlock: {
+          label: '萬用.gs 完整程式碼',
+          filename: '程式碼.gs',
+          code: UNIVERSAL_GS_CODE
+        },
+        mockupHint: '點擊編輯器內的「模擬清空並貼上萬用.gs」按鈕查看效果'
+      },
+      {
+        id: 3,
+        shortTitle: '建立 index.html',
+        title: '步驟 3：建立 index.html 檔案並清空預設內容',
+        summary: '在左側檔案清單新增一個名為 index 的 HTML 檔案，準備用來存放網頁原始碼。',
+        instructions: [
+          '將滑鼠移至左側「檔案」標題右側，點擊 <strong class="text-slate-900">「+」（新增檔案）</strong> 圖示。',
+          '在彈出選單中選擇 <strong class="text-gblue">「HTML」</strong>。',
+          '輸入檔名 <code class="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono font-bold text-gred">index</code> 後按 Enter（系統會自動補上 .html 副檔名）。',
+          '建立完成後，請先將編輯器自動產生的預設 HTML 骨架標籤<strong>全部清空</strong>。'
+        ],
+        tipTitle: '檔名大小寫需完全一致',
+        tipContent: '因為萬用.gs 中寫的是 createHtmlOutputFromFile(\'index\')，所以檔名必須命名為小寫的 index，否則部署時會找不到畫面。',
+        mockupHint: '點擊左側檔案旁的「+」選單中的「HTML」選項'
+      },
+      {
+        id: 4,
+        shortTitle: '貼入網頁並存檔',
+        title: '步驟 4：從記事本複製 HTML 貼入並存檔',
+        summary: '用記事本開啟做好的 HTML 網頁檔，全選複製貼進 index.html，最後務必按下儲存。',
+        instructions: [
+          '在電腦上找到你想發布的網頁檔案，按右鍵選擇 <strong>「開啟檔案 → 記事本」</strong>。',
+          '在記事本內按 <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-xs">Ctrl + A</kbd> 全選並 <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-xs">Ctrl + C</kbd> 複製全部原始碼。',
+          '回到 Apps Script 的 <code class="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono">index.html</code> 貼上內容。',
+          '點擊上方工具列的 <strong class="text-gred">磁碟片「儲存專案」圖示</strong>（或按 <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-xs">Ctrl + S</kbd>），確認檔名旁的橘色未儲存圓點消失。'
+        ],
+        tipTitle: '單一檔案整合建議',
+        tipContent: '建議將 CSS（<style>）與 JavaScript（<script>）都直接寫在同一個 HTML 檔案內（或使用 CDN 連結），部署最穩定不會缺檔。',
+        codeBlock: {
+          label: '測試用範例 HTML 原始碼',
+          filename: 'index.html',
+          code: SAMPLE_HTML_CODE
+        },
+        mockupHint: '先點擊右側記事本的「複製並貼入」，再點擊上方「儲存」圖示'
+      },
+      {
+        id: 5,
+        shortTitle: '部署與權限設定',
+        title: '步驟 5：執行部署作業與設定公開存取權限',
+        summary: '將專案發布為網頁應用程式，並將存取權限設為「所有人」，完成初次 Google 帳號安全授權。',
+        instructions: [
+          '點擊右上角藍色 <strong class="text-gblue">「部署」</strong> 按鈕 → 選擇 <strong class="text-slate-900">「新增部署作業」</strong>。',
+          '點擊左上角「選取類型」旁的齒輪圖示，勾選 <strong class="text-slate-900">「網頁應用程式」</strong>。',
+          '<strong>執行身分</strong>：維持選擇 <strong class="text-slate-900">「我」</strong>。',
+          '<strong>誰可以存取</strong>：務必改選為 <strong class="text-gred">「所有人」</strong>（否則其他人打開網址會被要求登入或顯示無權限）。',
+          '點擊 <strong class="text-gblue">「部署」</strong>，初次執行會跳出「授予存取權」安全提示，請依序點選 <strong>「進階」→「前往……（不安全）」→「允許」</strong>。'
+        ],
+        tipTitle: '遇到「Google 尚未驗證這個應用程式」別緊張！',
+        tipContent: '這是因為程式是你自己寫的、尚未提交給 Google 商店公開審核，因此出現標準安全確認提示。點擊左下角的「進階」即可繼續完成授權。',
+        mockupHint: '設定「所有人」後點擊「部署」，或切換上方分頁演練「首次授權通關」'
+      },
+      {
+        id: 6,
+        shortTitle: '取得網址與更新',
+        title: '步驟 6：取得 /exec 公開網址與日後更新教學',
+        summary: '複製結尾為 /exec 的正式網頁網址即可分享使用；日後修改程式碼時記得要「建立新版本」。',
+        instructions: [
+          '授權完成後，畫面上會顯示 <strong class="text-ggreen">「網頁應用程式」網址</strong>（網址結尾為 <code class="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono font-bold">/exec</code>）。',
+          '點擊 <strong>「複製」</strong> 按鈕取得網址，貼到瀏覽器分頁即可正式瀏覽你的網頁！',
+          '<strong class="text-gred">【日後修改更新必看】</strong>：未來只要改過 index.html 或 程式碼.gs，光按 Ctrl+S 儲存<strong>不會</strong>更新線上網址畫面！',
+          '必須點選 <strong>「部署」→「管理部署作業」→ 右上角「編輯（鉛筆圖示）」→ 版本改選「建立新版本」→「部署」</strong>，原網址才會套用最新畫面。'
+        ],
+        tipTitle: '網址會改變嗎？',
+        tipContent: '只要透過「管理部署作業 → 編輯 → 建立新版本」更新，原本分享出去的 /exec 網址完全不會改變，使用者重新整理就能看到新版內容！',
+        mockupHint: '點擊複製網址、開啟實機預覽，或切換分頁查看「日後修改如何更新」'
+      }
+    ];
+
+    // 3. 應用程式狀態管理
+    const appState = {
+      currentStep: 1,
+      // 各步驟內部互動狀態
+      step2Pasted: false,
+      step3Stage: 'menu',       // 'menu' -> 'naming' -> 'cleared'
+      step4Stage: 'notepad',    // 'notepad' -> 'pasted' -> 'saved'
+      step5Tab: 'settings',     // 'settings' | 'auth'
+      step5AuthStep: 0,         // 0: 授予存取權, 1: 進階, 2: 前往不安全, 3: 允許完成
+      step6Tab: 'result',       // 'result' | 'update'
+      step6PreviewOpen: false,
+      step6UpdateStep: 0        // 0: 管理部署作業, 1: 編輯建立新版本, 2: 更新完成
+    };
+
+    // 4. 初始化渲染
+    document.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+
+      // 支援鍵盤左右方向鍵快速切換步驟
+      document.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if (e.key === 'ArrowRight') nextStep();
+        if (e.key === 'ArrowLeft') prevStep();
+      });
+    });
+
+    // 5. 步驟切換函式
+    function goToStep(stepNum) {
+      if (stepNum < 1 || stepNum > 6) return;
+      appState.currentStep = stepNum;
+      renderAll();
+    }
+
+    function nextStep() {
+      if (appState.currentStep < 6) {
+        appState.currentStep++;
+        renderAll();
+      }
+    }
+
+    function prevStep() {
+      if (appState.currentStep > 1) {
+        appState.currentStep--;
+        renderAll();
+      }
+    }
+
+    // 重播當前步驟的互動初始狀態
+    function resetCurrentStepInteraction() {
+      const s = appState.currentStep;
+      if (s === 2) appState.step2Pasted = false;
+      if (s === 3) appState.step3Stage = 'menu';
+      if (s === 4) appState.step4Stage = 'notepad';
+      if (s === 5) {
+        appState.step5Tab = 'settings';
+        appState.step5AuthStep = 0;
+      }
+      if (s === 6) {
+        appState.step6Tab = 'result';
+        appState.step6PreviewOpen = false;
+        appState.step6UpdateStep = 0;
+      }
+      renderMockup();
+      showToast('已重置本步驟模擬畫面狀態');
+    }
+
+    // 6. 統一渲染入口
+    function renderAll() {
+      renderNavigation();
+      renderLeftGuide();
+      renderMockup();
+    }
+
+    // 7. 渲染頂部步驟進度導覽
+    function renderNavigation() {
+      const container = document.getElementById('step-nav-container');
+      const current = appState.currentStep;
+
+      container.innerHTML = STEPS_DATA.map((step) => {
+        const isActive = step.id === current;
+        const isCompleted = step.id < current;
+
+        let btnClass = 'bg-slate-100 text-slate-500 border-transparent hover:bg-slate-200/70';
+        let badgeClass = 'bg-slate-300 text-white';
+
+        if (isActive) {
+          btnClass = 'bg-gblue-light text-gblue border-gblue/40 font-semibold shadow-sm';
+          badgeClass = 'bg-gblue text-white';
+        } else if (isCompleted) {
+          btnClass = 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/70';
+          badgeClass = 'bg-ggreen text-white';
+        }
+
+        return `
+          <button
+            onclick="goToStep(${step.id})"
+            class="flex items-center justify-center sm:justify-start gap-2 px-2 py-2 sm:px-3 rounded-xl border text-xs transition-all cursor-pointer ${btnClass}"
+          >
+            <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${badgeClass}">
+              ${isCompleted ? '✓' : step.id}
+            </span>
+            <span class="hidden sm:inline truncate">${step.shortTitle}</span>
+          </button>
+        `;
+      }).join('');
+
+      // 更新上下一步按鈕狀態
+      document.getElementById('desktop-prev-btn').disabled = current === 1;
+      document.getElementById('desktop-next-btn').disabled = current === 6;
+      document.getElementById('mobile-prev-btn').disabled = current === 1;
+      document.getElementById('mobile-next-btn').disabled = current === 6;
+      document.getElementById('mobile-step-badge').textContent = `${current} / 6`;
+    }
+
+    // 8. 渲染左側教學指引面板
+    function renderLeftGuide() {
+      const panel = document.getElementById('left-guide-panel');
+      const step = STEPS_DATA[appState.currentStep - 1];
+
+      let codeSectionHTML = '';
+      if (step.codeBlock) {
+        codeSectionHTML = `
+          <div class="rounded-xl border border-slate-200 bg-slate-900 text-slate-100 overflow-hidden shadow-sm">
+            <div class="flex items-center justify-between px-3.5 py-2 bg-slate-800 border-b border-slate-700">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold text-slate-200">${step.codeBlock.label}</span>
+                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-700 text-sky-300">${step.codeBlock.filename}</span>
+              </div>
+              <button
+                onclick="copyStepCode(${step.id})"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gblue hover:bg-gblue-dark text-white text-xs font-medium transition cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                一鍵複製
+              </button>
+            </div>
+            <pre class="p-3.5 text-xs font-mono leading-relaxed overflow-x-auto text-slate-200"><code>${escapeHTML(step.codeBlock.code)}</code></pre>
+          </div>
+        `;
+      }
+
+      panel.innerHTML = `
+        <div class="fade-in flex flex-col gap-5">
+          <!-- 步驟標題標頭 -->
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gblue-light text-gblue text-xs font-bold mb-2.5">
+              <span>STEP 0${step.id}</span>
+              <span>•</span>
+              <span>共 6 個步驟</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 leading-snug">
+              ${step.title}
+            </h2>
+            <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+              ${step.summary}
+            </p>
+          </div>
+
+          <!-- 條列式操作說明 -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-gblue" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              詳細操作步驟
+            </h3>
+            <ol class="space-y-3">
+              ${step.instructions.map((item, idx) => `
+                <li class="flex items-start gap-2.5 text-sm text-slate-700 leading-relaxed">
+                  <span class="w-5 h-5 rounded-full bg-white border border-slate-300 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                    ${idx + 1}
+                  </span>
+                  <span>${item}</span>
+                </li>
+              `).join('')}
+            </ol>
+          </div>
+
+          <!-- 程式碼區塊（若有） -->
+          ${codeSectionHTML}
+
+          <!-- 重點提示框 (Alert Box) -->
+          <div class="rounded-xl bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="text-xs sm:text-sm text-amber-900 leading-relaxed">
+              <div class="font-bold mb-0.5">${step.tipTitle}</div>
+              <div class="text-amber-800">${step.tipContent}</div>
+            </div>
+          </div>
+
+          <!-- 底部快速導引按鈕 -->
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <button onclick="prevStep()" ${step.id === 1 ? 'disabled' : ''} class="text-xs sm:text-sm font-medium text-slate-500 hover:text-slate-800 disabled:opacity-30 cursor-pointer">
+              ← 上一步
+            </button>
+            ${step.id < 6 ? `
+              <button onclick="nextStep()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gblue hover:bg-gblue-dark text-white text-xs sm:text-sm font-semibold shadow-sm transition cursor-pointer">
+                已完成，前往步驟 ${step.id + 1} →
+              </button>
+            ` : `
+              <button onclick="goToStep(1)" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ggreen hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition cursor-pointer">
+                🎉 完成教學！回到步驟 1
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    // 9. 渲染右側高擬真操作畫面模擬區
+    function renderMockup() {
+      const step = appState.currentStep;
+      const canvas = document.getElementById('mockup-canvas');
+      const tabTitle = document.getElementById('browser-tab-title');
+      const urlBar = document.getElementById('browser-url-bar');
+      const hintBanner = document.getElementById('mockup-instruction-banner');
+
+      hintBanner.textContent = `互動提示：${STEPS_DATA[step - 1].mockupHint}`;
+
+      // 根據步驟切換瀏覽器分頁標籤與網址列
+      if (step === 1) {
+        tabTitle.innerHTML = `
+          <span class="w-4 h-4 rounded bg-ggreen text-white flex items-center justify-center text-[10px] font-bold shrink-0">田</span>
+          <span class="truncate">網頁託管專案 - Google 試算表</span>
+        `;
+        urlBar.textContent = 'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/edit#gid=0';
+        canvas.innerHTML = getStep1MockupHTML();
+      } else {
+        tabTitle.innerHTML = `
+          <span class="w-4 h-4 rounded bg-gblue text-white flex items-center justify-center text-[10px] font-bold shrink-0">&lt;/&gt;</span>
+          <span class="truncate">未命名專案 - Apps Script</span>
+        `;
+        urlBar.textContent = 'https://script.google.com/home/projects/1abcDEF234567890_WebHostProject/edit';
+
+        if (step === 2) canvas.innerHTML = getStep2MockupHTML();
+        if (step === 3) canvas.innerHTML = getStep3MockupHTML();
+        if (step === 4) canvas.innerHTML = getStep4MockupHTML();
+        if (step === 5) canvas.innerHTML = getStep5MockupHTML();
+        if (step === 6) canvas.innerHTML = getStep6MockupHTML();
+      }
+    }
+
+    // ==================== 各步驟模擬畫面 HTML 建構器 ====================
+
+    // 步驟 1：Google 試算表 + 擴充功能 > Apps Script 下拉選單
+    function getStep1MockupHTML() {
+      return `
+        <div class="min-w-[600px] flex flex-col h-full select-none fade-in">
+          <!-- Google 試算表頂部標題列 -->
+          <div class="px-4 pt-3 pb-1.5 flex items-center justify-between border-b border-slate-200 bg-white">
+            <div class="flex items-center gap-3">
+              <!-- 試算表綠色圖示 -->
+              <div class="w-9 h-9 rounded-lg bg-ggreen flex items-center justify-center text-white shadow-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-base font-medium text-slate-800">網頁託管專案</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">.xlsx / 試算表</span>
+                </div>
+                <!-- 功能表列 -->
+                <div class="flex items-center gap-1 mt-1 text-xs text-slate-700 relative">
+                  <span class="px-2 py-0.5 rounded hover:bg-slate-100">檔案</span>
+                  <span class="px-2 py-0.5 rounded hover:bg-slate-100">編輯</span>
+                  <span class="px-2 py-0.5 rounded hover:bg-slate-100">檢視</span>
+                  <span class="px-2 py-0.5 rounded hover:bg-slate-100">插入</span>
+                  <span class="px-2 py-0.5 rounded hover:bg-slate-100">格式</span>
+                  <span class="px-2 py-0.5 rounded hover:bg-slate-100">資料</span>
+                  <span class="px-2 py-0.5 rounded hover:bg-slate-100">工具</span>
+                  <!-- 展開中的「擴充功能」 -->
+                  <div class="relative">
+                    <span class="px-2.5 py-0.5 rounded bg-gblue-light text-gblue font-semibold">擴充功能</span>
+                    <!-- 展開下拉選單 -->
+                    <div class="absolute left-0 top-full mt-1 w-56 bg-white rounded-lg shadow-xl border border-slate-200 py-1.5 z-30">
+                      <div class="px-3.5 py-2 text-xs text-slate-600 flex items-center justify-between hover:bg-slate-50">
+                        <span>外掛程式</span>
+                        <span class="text-slate-400">▸</span>
+                      </div>
+                      <div class="px-3.5 py-2 text-xs text-slate-600 flex items-center justify-between hover:bg-slate-50">
+                        <span>巨集</span>
+                        <span class="text-slate-400">▸</span>
+                      </div>
+                      <div class="my-1 border-t border-slate-100"></div>
+                      <!-- 紅色高亮互動目標：Apps Script -->
+                      <div class="px-1.5">
+                        <button
+                          onclick="nextStep()"
+                          class="w-full px-2.5 py-2 rounded-lg bg-red-50/90 hotspot-box flex items-center justify-between text-left group"
+                        >
+                          <div class="flex items-center gap-2.5">
+                            <span class="w-5 h-5 rounded bg-gblue text-white flex items-center justify-center text-[10px] font-bold">&lt;/&gt;</span>
+                            <span class="text-xs font-bold text-slate-900">Apps Script</span>
+                          </div>
+                          <span class="text-[11px] font-bold text-gred group-hover:translate-x-0.5 transition">點擊開啟 →</span>
+                        </button>
+                      </div>
+                      <!-- 浮動氣泡指示 -->
+                      <div class="mt-2 mx-2 px-2.5 py-1.5 rounded-lg bg-gred text-white text-[11px] font-semibold text-center shadow-md animate-float">
+                        👆 點選此處開啟 Apps Script 編輯器
+                      </div>
+                    </div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded hover:bg-slate-100">說明</span>
+                </div>
+              </div>
+            </div>
+            <!-- 右上角共用按鈕裝飾 -->
+            <div class="flex items-center gap-2">
+              <span class="px-3.5 py-1.5 rounded-full bg-sky-100 text-sky-900 text-xs font-semibold flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                共用
+              </span>
+              <div class="w-7 h-7 rounded-full bg-gblue text-white text-xs font-bold flex items-center justify-center">王</div>
+            </div>
+          </div>
+
+          <!-- 工具快捷列裝飾 -->
+          <div class="px-4 py-1.5 bg-slate-100/80 border-b border-slate-200 flex items-center gap-3 text-xs text-slate-500">
+            <span>↶</span><span>↷</span><span>🖨️</span><span>|</span>
+            <span class="font-semibold text-slate-700">100%</span><span>|</span>
+            <span>$</span><span>%</span><span>123</span><span>|</span>
+            <span>預設字體 ▾</span><span>10</span><span>|</span>
+            <span class="font-bold">B</span><span class="italic">I</span>
+          </div>
+
+          <!-- 資料編輯列 fx -->
+          <div class="px-3 py-1 bg-white border-b border-slate-200 flex items-center gap-2 text-xs">
+            <span class="text-slate-500 font-mono w-10 text-center border-r border-slate-200">A1</span>
+            <span class="italic font-serif text-slate-400 font-bold">fx</span>
+            <span class="text-slate-400">靜態網頁部署專案</span>
+          </div>
+
+          <!-- 模擬試算表儲存格網格 -->
+          <div class="flex-1 bg-white overflow-hidden">
+            <table class="w-full border-collapse text-xs text-slate-600">
+              <thead>
+                <tr class="bg-slate-100 text-slate-500 font-medium">
+                  <th class="w-10 border border-slate-200 py-1"></th>
+                  <th class="border border-slate-200 py-1 w-1/4">A</th>
+                  <th class="border border-slate-200 py-1 w-1/4">B</th>
+                  <th class="border border-slate-200 py-1 w-1/4">C</th>
+                  <th class="border border-slate-200 py-1 w-1/4">D</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(row => `
+                  <tr>
+                    <td class="bg-slate-100 text-center text-slate-400 border border-slate-200 py-1.5">${row}</td>
+                    <td class="border border-slate-200 px-2 py-1.5 ${row === 1 ? 'ring-2 ring-gblue bg-blue-50/20 font-medium text-slate-800' : ''}">${row === 1 ? '靜態網頁部署專案' : ''}</td>
+                    <td class="border border-slate-200 px-2 py-1.5"></td>
+                    <td class="border border-slate-200 px-2 py-1.5"></td>
+                    <td class="border border-slate-200 px-2 py-1.5"></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 步驟 2：Google Apps Script 編輯器 - 清空並貼上萬用.gs
+    function getStep2MockupHTML() {
+      const pasted = appState.step2Pasted;
+
+      return `
+        <div class="min-w-[600px] flex flex-col h-full min-h-[480px] select-none fade-in">
+          <!-- Apps Script 頂部標題與藍色「部署」按鈕 -->
+          <div class="px-4 py-2.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-gblue text-white flex items-center justify-center font-bold text-xs shadow-xs">&lt;/&gt;</div>
+              <div>
+                <div class="text-sm font-semibold text-slate-800">未命名專案</div>
+                <div class="text-[11px] text-slate-400">所有變更均已儲存至雲端硬碟</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1.5 rounded-lg bg-gblue text-white text-xs font-semibold opacity-70">部署 ▾</span>
+            </div>
+          </div>
+
+          <!-- 主工作區：左側邊欄 + 右側程式編輯器 -->
+          <div class="flex flex-1">
+            <!-- 最左側圖示導覽欄 -->
+            <div class="w-12 bg-slate-50 border-r border-slate-200 flex flex-col items-center py-3 gap-4 text-slate-500">
+              <span class="p-2 rounded-lg text-slate-400" title="總覽">ⓘ</span>
+              <span class="p-2 rounded-lg bg-gblue-light text-gblue font-bold" title="編輯器">&lt;/&gt;</span>
+              <span class="p-2 rounded-lg text-slate-400" title="觸發條件">⏰</span>
+              <span class="p-2 rounded-lg text-slate-400" title="執行項目">☰</span>
+              <span class="p-2 rounded-lg text-slate-400" title="專案設定">⚙️</span>
+            </div>
+
+            <!-- 檔案清單面板 -->
+            <div class="w-44 bg-white border-r border-slate-200 flex flex-col">
+              <div class="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700">檔案</span>
+                <span class="text-slate-400 text-base leading-none">+</span>
+              </div>
+              <div class="p-1.5 space-y-1">
+                <div class="px-2.5 py-2 rounded-lg bg-gblue-light text-gblue text-xs font-semibold flex items-center justify-between">
+                  <span class="flex items-center gap-1.5">
+                    <span class="text-[10px] px-1 rounded bg-gblue text-white font-mono">JS</span>
+                    程式碼.gs
+                  </span>
+                  <span>⋮</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 程式碼編輯器主區 -->
+            <div class="flex-1 flex flex-col bg-white">
+              <!-- 編輯器操作工具列 -->
+              <div class="px-3 py-1.5 border-b border-slate-200 bg-slate-50/70 flex items-center gap-3 text-xs text-slate-600">
+                <span>↶</span><span>↷</span>
+                <span class="text-slate-400">💾</span>
+                <span class="text-slate-300">|</span>
+                <span class="text-slate-400">▶ 執行</span>
+                <span class="text-slate-400">🐞 偵錯</span>
+                <span class="px-2 py-0.5 rounded bg-slate-200/80 text-slate-700 font-mono text-[11px]">doGet ▾</span>
+              </div>
+
+              <!-- 程式碼顯示與互動區 -->
+              <div class="flex-1 p-4 font-mono text-xs relative">
+                ${!pasted ? `
+                  <!-- 尚未貼上時的預設畫面 -->
+                  <div class="space-y-1 text-slate-500">
+                    <div class="flex gap-4"><span class="text-slate-300 w-4 text-right">1</span><span><span class="text-purple-600">function</span> <span class="text-blue-600">myFunction</span>() {</span></div>
+                    <div class="flex gap-4"><span class="text-slate-300 w-4 text-right">2</span><span>  </span></div>
+                    <div class="flex gap-4"><span class="text-slate-300 w-4 text-right">3</span><span>}</span></div>
+                  </div>
+
+                  <!-- 互動操作引導卡片 -->
+                  <div class="mt-8 p-5 rounded-2xl bg-red-50/90 hotspot-box max-w-md mx-auto text-center">
+                    <div class="text-sm font-bold text-slate-900 mb-1.5">
+                      清空預設的 myFunction() 並貼入「萬用.gs」
+                    </div>
+                    <p class="text-xs font-sans text-slate-600 mb-3.5">
+                      點擊下方按鈕，模擬清空編輯區並貼上完整 <code class="text-gblue font-bold">doGet(e)</code> 網頁服務程式碼
+                    </p>
+                    <button
+                      onclick="appState.step2Pasted = true; renderMockup();"
+                      class="px-4 py-2 rounded-xl bg-gred hover:bg-red-600 text-white font-sans text-xs font-bold shadow-md transition cursor-pointer"
+                    >
+                      📋 點擊清空並貼上「萬用.gs」
+                    </button>
+                  </div>
+                ` : `
+                  <!-- 已貼上萬用.gs 的語法上色畫面 -->
+                  <div class="space-y-1.5 leading-relaxed fade-in">
+                    <div class="flex gap-4"><span class="text-slate-400 w-4 text-right">1</span><span><span class="text-purple-600 font-semibold">function</span> <span class="text-blue-600 font-semibold">doGet</span>(e) {</span></div>
+                    <div class="flex gap-4"><span class="text-slate-400 w-4 text-right">2</span><span>  <span class="text-purple-600 font-semibold">return</span> HtmlService.<span class="text-blue-600">createHtmlOutputFromFile</span>(<span class="text-emerald-600">'index'</span>)</span></div>
+                    <div class="flex gap-4"><span class="text-slate-400 w-4 text-right">3</span><span>    .<span class="text-blue-600">setTitle</span>(<span class="text-emerald-600">'我的網頁應用程式'</span>)</span></div>
+                    <div class="flex gap-4"><span class="text-slate-400 w-4 text-right">4</span><span>    .<span class="text-blue-600">addMetaTag</span>(<span class="text-emerald-600">'viewport'</span>, <span class="text-emerald-600">'width=device-width, initial-scale=1'</span>)</span></div>
+                    <div class="flex gap-4"><span class="text-slate-400 w-4 text-right">5</span><span>    .<span class="text-blue-600">setXFrameOptionsMode</span>(HtmlService.XFrameOptionsMode.ALLOWALL);</span></div>
+                    <div class="flex gap-4"><span class="text-slate-400 w-4 text-right">6</span><span>}</span></div>
+                  </div>
+
+                  <!-- 完成提示框 -->
+                  <div class="mt-6 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 font-sans flex items-center justify-between gap-3 fade-in">
+                    <div class="text-xs text-emerald-900">
+                      <span class="font-bold">✅ 已成功貼上「萬用.gs」！</span><br/>
+                      接著我們要建立它所呼叫的 <code class="font-mono font-bold">'index'</code> 網頁檔案。
+                    </div>
+                    <button onclick="nextStep()" class="px-3.5 py-2 rounded-lg bg-ggreen hover:bg-emerald-700 text-white text-xs font-bold shrink-0 shadow-xs cursor-pointer">
+                      前往步驟 3 →
+                    </button>
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 步驟 3：建立 index.html 檔案並清空預設內容
+    function getStep3MockupHTML() {
+      const stage = appState.step3Stage; // 'menu' | 'naming' | 'cleared'
+
+      return `
+        <div class="min-w-[600px] flex flex-col h-full min-h-[480px] select-none fade-in">
+          <!-- 頂部工具列 -->
+          <div class="px-4 py-2.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-gblue text-white flex items-center justify-center font-bold text-xs">&lt;/&gt;</div>
+              <div class="text-sm font-semibold text-slate-800">未命名專案</div>
+            </div>
+            <span class="px-3 py-1.5 rounded-lg bg-gblue text-white text-xs font-semibold opacity-70">部署 ▾</span>
+          </div>
+
+          <div class="flex flex-1">
+            <!-- 左側欄 -->
+            <div class="w-12 bg-slate-50 border-r border-slate-200 flex flex-col items-center py-3 gap-4 text-slate-400">
+              <span>ⓘ</span>
+              <span class="p-2 rounded-lg bg-gblue-light text-gblue font-bold">&lt;/&gt;</span>
+              <span>⏰</span><span>☰</span><span>⚙️</span>
+            </div>
+
+            <!-- 檔案清單區（本步驟重點） -->
+            <div class="w-52 bg-white border-r border-slate-200 flex flex-col relative">
+              <div class="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700">檔案</span>
+                <!-- 高亮的 + 按鈕 -->
+                <span class="w-6 h-6 rounded-full bg-gblue-light text-gblue font-bold flex items-center justify-center text-sm">+</span>
+              </div>
+
+              <!-- 階段 1：展開 + 選單，紅框標示 HTML -->
+              ${stage === 'menu' ? `
+                <div class="absolute right-2 top-10 w-36 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30">
+                  <div class="px-3.5 py-2 text-xs text-slate-600 hover:bg-slate-50">指令碼</div>
+                  <div class="px-1.5">
+                    <button
+                      onclick="appState.step3Stage = 'naming'; renderMockup();"
+                      class="w-full px-2.5 py-2 rounded-lg bg-red-50 hotspot-box text-left text-xs font-bold text-slate-900 flex items-center justify-between"
+                    >
+                      <span>HTML</span>
+                      <span class="text-gred text-[11px]">點擊 ↵</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="mt-20 mx-2.5 px-2.5 py-1.5 rounded-lg bg-gred text-white text-[11px] font-semibold text-center shadow animate-float">
+                  👆 點選「HTML」新增網頁檔
+                </div>
+              ` : ''}
+
+              <div class="p-1.5 space-y-1">
+                <div class="px-2.5 py-2 rounded-lg text-slate-700 text-xs flex items-center gap-1.5">
+                  <span class="text-[10px] px-1 rounded bg-slate-200 text-slate-600 font-mono">JS</span>
+                  程式碼.gs
+                </div>
+
+                <!-- 階段 2：正在輸入檔名 index -->
+                ${stage === 'naming' ? `
+                  <div class="p-2 rounded-xl bg-red-50 hotspot-box">
+                    <div class="text-[10px] font-bold text-gred mb-1">輸入檔名「index」：</div>
+                    <div class="flex items-center bg-white border border-gblue rounded px-2 py-1 text-xs font-mono">
+                      <span class="text-slate-900 font-bold">index</span>
+                      <span class="text-slate-400">.html</span>
+                    </div>
+                    <button
+                      onclick="appState.step3Stage = 'cleared'; renderMockup();"
+                      class="mt-2 w-full py-1.5 rounded-lg bg-gblue text-white text-[11px] font-bold hover:bg-gblue-dark cursor-pointer"
+                    >
+                      按 Enter 建立並清空預設內容
+                    </button>
+                  </div>
+                ` : ''}
+
+                <!-- 階段 3：已建立 index.html -->
+                ${stage === 'cleared' ? `
+                  <div class="px-2.5 py-2 rounded-lg bg-gblue-light text-gblue text-xs font-semibold flex items-center justify-between fade-in">
+                    <span class="flex items-center gap-1.5">
+                      <span class="text-[10px] px-1 rounded bg-orange-500 text-white font-mono">&lt;&gt;</span>
+                      index.html
+                    </span>
+                    <span>⋮</span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- 右側編輯區 -->
+            <div class="flex-1 flex flex-col bg-white p-4 font-mono text-xs">
+              ${stage !== 'cleared' ? `
+                <div class="h-full flex flex-col items-center justify-center text-center text-slate-400 font-sans">
+                  <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3 text-xl">📄</div>
+                  <p class="text-sm font-medium text-slate-600">請依照左側紅框提示建立 <code class="text-gblue font-mono">index.html</code></p>
+                </div>
+              ` : `
+                <div class="flex gap-4 text-slate-400">
+                  <span class="w-4 text-right">1</span>
+                  <span class="bg-blue-100 text-blue-900 px-1 rounded">| （已清空預設 HTML 標籤，準備貼入你的網頁內容）</span>
+                </div>
+                <div class="mt-8 p-4 rounded-xl bg-emerald-50 border border-emerald-200 font-sans flex items-center justify-between gap-3 fade-in">
+                  <div class="text-xs text-emerald-900">
+                    <span class="font-bold">✅ index.html 已建立並清空！</span><br/>
+                    接下來把記事本裡的網頁程式碼貼進來並存檔。
+                  </div>
+                  <button onclick="nextStep()" class="px-3.5 py-2 rounded-lg bg-ggreen hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer">
+                    前往步驟 4 →
+                  </button>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 步驟 4：從記事本複製 HTML 貼入並點擊儲存專案
+    function getStep4MockupHTML() {
+      const stage = appState.step4Stage; // 'notepad' | 'pasted' | 'saved'
+      const isUnsaved = stage === 'pasted';
+
+      return `
+        <div class="min-w-[600px] flex flex-col h-full min-h-[480px] select-none fade-in">
+          <!-- Apps Script 頂部列 -->
+          <div class="px-4 py-2 bg-white border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-gblue text-white flex items-center justify-center font-bold text-xs">&lt;/&gt;</div>
+              <span class="text-sm font-semibold text-slate-800">未命名專案</span>
+              ${isUnsaved ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">● 尚未儲存變更</span>` : ''}
+              ${stage === 'saved' ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">✓ 已儲存專案</span>` : ''}
+            </div>
+            <span class="px-3 py-1 rounded-lg bg-gblue text-white text-xs font-semibold opacity-70">部署 ▾</span>
+          </div>
+
+          <div class="flex flex-1">
+            <!-- 左側檔案清單 -->
+            <div class="w-40 bg-white border-r border-slate-200 flex flex-col shrink-0">
+              <div class="px-3 py-2 border-b border-slate-100 text-xs font-bold text-slate-700">檔案</div>
+              <div class="p-1.5 space-y-1 text-xs">
+                <div class="px-2 py-1.5 rounded text-slate-600">程式碼.gs</div>
+                <div class="px-2 py-1.5 rounded-lg bg-gblue-light text-gblue font-semibold flex items-center justify-between">
+                  <span>index.html</span>
+                  <!-- 未儲存的橘色圓點 -->
+                  ${isUnsaved ? `<span class="w-2 h-2 rounded-full bg-orange-500" title="尚未儲存"></span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- 中間 Apps Script 編輯區 + 儲存按鈕 -->
+            <div class="flex-1 flex flex-col bg-white border-r border-slate-200">
+              <!-- 工具列：當 stage === 'pasted' 時紅框高亮儲存磁碟片 -->
+              <div class="px-3 py-1.5 border-b border-slate-200 bg-slate-50 flex items-center gap-2 text-xs">
+                <span class="text-slate-400">↶</span>
+                <span class="text-slate-400">↷</span>
+                ${stage === 'pasted' ? `
+                  <button
+                    onclick="appState.step4Stage = 'saved'; renderMockup(); showToast('已儲存 index.html（Ctrl + S）！');"
+                    class="px-2.5 py-1 rounded-lg bg-red-50 hotspot-box text-gred font-bold flex items-center gap-1 cursor-pointer"
+                    title="儲存專案 (Ctrl + S)"
+                  >
+                    <span>💾</span>
+                    <span>儲存專案 (Ctrl+S)</span>
+                  </button>
+                ` : `
+                  <span class="px-2 py-1 text-slate-400 flex items-center gap-1">💾 儲存專案</span>
+                `}
+              </div>
+
+              <!-- index.html 內容區 -->
+              <div class="p-3 font-mono text-[11px] flex-1 overflow-y-auto">
+                ${stage === 'notepad' ? `
+                  <div class="text-slate-400 italic mt-6 text-center font-sans">
+                    目前 index.html 為空白狀態<br/>請從右側「記事本」複製網頁原始碼貼入 →
+                  </div>
+                ` : `
+                  <div class="space-y-1 text-slate-700 fade-in">
+                    <div><span class="text-slate-400 mr-2">1</span><span class="text-blue-600">&lt;!DOCTYPE html&gt;</span></div>
+                    <div><span class="text-slate-400 mr-2">2</span><span class="text-blue-600">&lt;html</span> <span class="text-sky-600">lang</span>=<span class="text-emerald-600">"zh-TW"</span><span class="text-blue-600">&gt;</span></div>
+                    <div><span class="text-slate-400 mr-2">3</span><span class="text-blue-600">&lt;head&gt;</span></div>
+                    <div><span class="text-slate-400 mr-2">4</span>  <span class="text-blue-600">&lt;title&gt;</span>我的第一個 GAS 網頁<span class="text-blue-600">&lt;/title&gt;</span></div>
+                    <div><span class="text-slate-400 mr-2">5</span><span class="text-blue-600">&lt;/head&gt;</span></div>
+                    <div><span class="text-slate-400 mr-2">6</span><span class="text-blue-600">&lt;body&gt;</span></div>
+                    <div><span class="text-slate-400 mr-2">7</span>  <span class="text-blue-600">&lt;h1&gt;</span>🎉 網頁部署成功！<span class="text-blue-600">&lt;/h1&gt;</span></div>
+                    <div><span class="text-slate-400 mr-2">8</span><span class="text-blue-600">&lt;/body&gt;</span></div>
+                    <div><span class="text-slate-400 mr-2">9</span><span class="text-blue-600">&lt;/html&gt;</span></div>
+                  </div>
+                `}
+
+                ${stage === 'saved' ? `
+                  <div class="mt-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 font-sans flex items-center justify-between gap-2 fade-in">
+                    <span class="text-xs font-bold text-emerald-900">✅ 存檔完成！橘色未儲存點已消失。</span>
+                    <button onclick="nextStep()" class="px-3 py-1.5 rounded-lg bg-ggreen text-white text-xs font-bold shrink-0 cursor-pointer">
+                      前往部署 →
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- 右側模擬 Windows 記事本視窗 -->
+            <div class="w-60 bg-slate-100 p-2.5 flex flex-col justify-center shrink-0">
+              <div class="bg-white rounded-xl border border-slate-300 shadow-md overflow-hidden flex flex-col">
+                <!-- 記事本標題列 -->
+                <div class="bg-slate-200 px-3 py-1.5 flex items-center justify-between text-[11px] font-medium text-slate-700">
+                  <span class="flex items-center gap-1.5">📝 index.html - 記事本</span>
+                  <span class="text-slate-400">✕</span>
+                </div>
+                <!-- 記事本選單列 -->
+                <div class="px-2.5 py-1 bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 flex gap-2.5">
+                  <span>檔案(F)</span><span>編輯(E)</span><span>檢視(V)</span>
+                </div>
+                <!-- 記事本文字區 -->
+                <div class="p-2.5 font-mono text-[10px] text-slate-600 bg-white leading-relaxed">
+                  &lt;!DOCTYPE html&gt;<br/>
+                  &lt;html lang="zh-TW"&gt;<br/>
+                  &lt;head&gt;<br/>
+                  &nbsp;&nbsp;&lt;title&gt;我的第一個 GAS 網頁&lt;/title&gt;<br/>
+                  &lt;/head&gt;<br/>
+                  &lt;body&gt;<br/>
+                  &nbsp;&nbsp;&lt;h1&gt;🎉 網頁部署成功！&lt;/h1&gt;<br/>
+                  &lt;/body&gt;<br/>
+                  &lt;/html&gt;
+                </div>
+                <!-- 互動按鈕 -->
+                <div class="p-2 bg-slate-50 border-t border-slate-200">
+                  ${stage === 'notepad' ? `
+                    <button
+                      onclick="appState.step4Stage = 'pasted'; renderMockup();"
+                      class="w-full py-2 px-2 rounded-lg bg-red-50 hotspot-box text-gred font-bold text-xs text-center cursor-pointer"
+                    >
+                      📋 全選複製並貼入左側
+                    </button>
+                  ` : `
+                    <div class="text-center text-[11px] text-emerald-700 font-semibold py-1">
+                      ✓ 內容已貼入 index.html
+                    </div>
+                  `}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 步驟 5：執行部署作業與權限設定（含首次授權警告通關互動）
+    function getStep5MockupHTML() {
+      const tab = appState.step5Tab; // 'settings' | 'auth'
+      const authStep = appState.step5AuthStep;
+
+      return `
+        <div class="min-w-[600px] flex flex-col h-full min-h-[490px] bg-slate-700/85 p-4 sm:p-5 select-none fade-in">
+          <!-- 子分頁切換器：部署設定 vs 首次授權通關 -->
+          <div class="flex items-center justify-center gap-2 mb-3">
+            <button
+              onclick="appState.step5Tab = 'settings'; renderMockup();"
+              class="px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${tab === 'settings' ? 'bg-white text-gblue shadow' : 'bg-slate-800/70 text-slate-200 hover:bg-slate-800'}"
+            >
+              1. 新增部署作業設定畫面
+            </button>
+            <button
+              onclick="appState.step5Tab = 'auth'; renderMockup();"
+              class="px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${tab === 'auth' ? 'bg-gred text-white shadow' : 'bg-slate-800/70 text-slate-200 hover:bg-slate-800'}"
+            >
+              2. 首次部署「安全警告」通關演練
+            </button>
+          </div>
+
+          ${tab === 'settings' ? `
+            <!-- 模擬 Google Apps Script「新增部署作業」對話框 -->
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-auto overflow-hidden border border-slate-200 fade-in">
+              <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+                <span class="text-base font-bold text-slate-800">新增部署作業</span>
+                <span class="text-slate-400 text-sm">✕</span>
+              </div>
+
+              <div class="grid grid-cols-12 min-h-[300px]">
+                <!-- 左側選取類型欄 -->
+                <div class="col-span-5 bg-slate-50 border-r border-slate-200 p-4">
+                  <div class="flex items-center justify-between text-xs font-bold text-slate-600 mb-3">
+                    <span>選取類型</span>
+                    <span class="p-1 rounded bg-white border border-slate-200 text-slate-700">⚙️</span>
+                  </div>
+                  <div class="p-3 rounded-xl bg-gblue-light border border-gblue/30 text-gblue flex items-center gap-2.5">
+                    <span class="text-lg">🌐</span>
+                    <div>
+                      <div class="text-xs font-bold">網頁應用程式</div>
+                      <div class="text-[10px] text-blue-700/80">可透過網址存取的 HTML 頁面</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 右側設定表單 -->
+                <div class="col-span-7 p-5 space-y-4">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">說明（選填）</label>
+                    <input type="text" readonly value="初版靜態網頁發布" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs text-slate-700 bg-slate-50" />
+                  </div>
+
+                  <!-- 執行身分：我 -->
+                  <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">執行身分</label>
+                    <div class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-800 flex items-center justify-between">
+                      <span>我（你的 Google 帳號）</span>
+                      <span class="text-slate-400">▾</span>
+                    </div>
+                  </div>
+
+                  <!-- 誰可以存取：所有人（紅框重點） -->
+                  <div class="p-2.5 rounded-xl bg-red-50 border border-gred/50">
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-[11px] font-bold text-gred">誰可以存取（務必改選！）</label>
+                      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gred text-white">關鍵設定</span>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-lg bg-white border-2 border-gred text-xs font-bold text-slate-900 flex items-center justify-between">
+                      <span>所有人</span>
+                      <span class="text-gred">▾</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 底部按鈕列 -->
+              <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+                <span class="px-3.5 py-1.5 text-xs font-semibold text-slate-500">取消</span>
+                <button
+                  onclick="appState.step5Tab = 'auth'; appState.step5AuthStep = 0; renderMockup();"
+                  class="px-5 py-2 rounded-xl bg-gblue hover:bg-gblue-dark text-white text-xs font-bold hotspot-box cursor-pointer"
+                >
+                  部署（下一步演練授權） →
+                </button>
+              </div>
+            </div>
+          ` : `
+            <!-- 模擬 Google OAuth 首次授權 4 步驟通關畫面 -->
+            <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full mx-auto p-5 border border-slate-200 fade-in">
+              <!-- 授權步驟指示條 -->
+              <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 border-b border-slate-100 pb-3 mb-4">
+                <span class="${authStep >= 0 ? 'text-gblue' : ''}">① 授予存取權</span>
+                <span>→</span>
+                <span class="${authStep >= 1 ? 'text-gblue' : ''}">② 點擊「進階」</span>
+                <span>→</span>
+                <span class="${authStep >= 2 ? 'text-gblue' : ''}">③ 前往(不安全)</span>
+                <span>→</span>
+                <span class="${authStep >= 3 ? 'text-ggreen' : ''}">④ 點擊「允許」</span>
+              </div>
+
+              ${authStep === 0 ? `
+                <div class="text-center py-4 space-y-3">
+                  <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 mx-auto flex items-center justify-center text-xl">🔐</div>
+                  <h4 class="text-base font-bold text-slate-900">需要授權才能執行應用程式</h4>
+                  <p class="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+                    「未命名專案」需要取得您的權限才能存取您的資料。初次部署會跳出此系統視窗。
+                  </p>
+                  <button onclick="appState.step5AuthStep = 1; renderMockup();" class="mt-2 px-5 py-2 rounded-xl bg-gblue text-white text-xs font-bold hotspot-box cursor-pointer">
+                    授予存取權
+                  </button>
+                </div>
+              ` : ''}
+
+              ${authStep === 1 ? `
+                <div class="py-2 space-y-3">
+                  <div class="flex items-center gap-2 text-xs text-slate-500">
+                    <span class="font-bold text-gblue">Google</span>
+                    <span>登入</span>
+                  </div>
+                  <div class="p-3 rounded-xl bg-amber-50 border border-amber-200">
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Google 尚未驗證這個應用程式</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                      此應用程式尚未經過 Google 驗證。只有當您認識並信任開發人員（就是你自己！）時，才繼續進行。
+                    </p>
+                  </div>
+                  <div class="flex items-center justify-between pt-3">
+                    <button onclick="appState.step5AuthStep = 2; renderMockup();" class="px-3 py-1.5 rounded-lg bg-red-50 hotspot-box text-xs font-bold text-slate-800 underline cursor-pointer">
+                      進階
+                    </button>
+                    <span class="px-4 py-1.5 rounded-lg bg-gblue text-white text-xs font-semibold opacity-60">返回安全頁面</span>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${authStep === 2 ? `
+                <div class="py-2 space-y-3">
+                  <h4 class="text-sm font-bold text-slate-900">已展開進階選項</h4>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    展開「進階」後，底部會出現一行連結文字，請直接點擊它繼續：
+                  </p>
+                  <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <button onclick="appState.step5AuthStep = 3; renderMockup();" class="px-3 py-2 rounded-lg bg-red-50 hotspot-box text-xs font-bold text-gblue underline text-left w-full cursor-pointer">
+                      前往「未命名專案」（不安全） →
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${authStep === 3 ? `
+                <div class="py-2 space-y-3">
+                  <h4 class="text-sm font-bold text-slate-900">「未命名專案」想要存取您的 Google 帳戶</h4>
+                  <p class="text-xs text-slate-600">
+                    確認授權範圍無誤後，點擊右下角的「允許」按鈕即完成全部授權！
+                  </p>
+                  <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <span class="px-3 py-1.5 text-xs text-slate-500">取消</span>
+                    <button onclick="nextStep()" class="px-5 py-2 rounded-xl bg-gblue text-white text-xs font-bold hotspot-box cursor-pointer">
+                      允許（完成授權並取得網址 →）
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // 步驟 6：取得 /exec 網址與日後更新教學
+    function getStep6MockupHTML() {
+      const tab = appState.step6Tab; // 'result' | 'update'
+      const previewOpen = appState.step6PreviewOpen;
+      const updateStep = appState.step6UpdateStep;
+
+      return `
+        <div class="min-w-[600px] flex flex-col h-full min-h-[490px] bg-slate-700/85 p-4 sm:p-5 select-none fade-in">
+          <!-- 子分頁切換器：部署完成網址 vs 日後更新版本教學 -->
+          <div class="flex items-center justify-center gap-2 mb-3">
+            <button
+              onclick="appState.step6Tab = 'result'; renderMockup();"
+              class="px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${tab === 'result' ? 'bg-white text-ggreen shadow' : 'bg-slate-800/70 text-slate-200 hover:bg-slate-800'}"
+            >
+              1. 取得 /exec 網址與網頁預覽
+            </button>
+            <button
+              onclick="appState.step6Tab = 'update'; renderMockup();"
+              class="px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${tab === 'update' ? 'bg-amber-400 text-slate-950 shadow' : 'bg-slate-800/70 text-slate-200 hover:bg-slate-800'}"
+            >
+              2. 日後修改內容如何更新版本？
+            </button>
+          </div>
+
+          ${tab === 'result' ? `
+            <!-- 部署完成視窗 -->
+            <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full mx-auto overflow-hidden border border-slate-200 fade-in">
+              <div class="px-5 py-3.5 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-ggreen text-white flex items-center justify-center text-xs font-bold">✓</span>
+                  <span class="text-base font-bold text-slate-900">部署作業已更新</span>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">版本 1</span>
+              </div>
+
+              <div class="p-5 space-y-4">
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-xs font-bold text-slate-700">網頁應用程式網址（結尾為 /exec）</span>
+                    <span class="text-[11px] text-ggreen font-semibold">● 公開運行中</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readonly
+                      value="${DEMO_EXEC_URL}"
+                      class="flex-1 px-3 py-2 rounded-xl bg-slate-100 border border-slate-300 font-mono text-[11px] text-slate-700"
+                    />
+                    <button
+                      onclick="copyTextToClipboard('${DEMO_EXEC_URL}', '已複製範例 /exec 網址格式！')"
+                      class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shrink-0 cursor-pointer"
+                    >
+                      複製
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 模擬開啟部署網址預覽按鈕 -->
+                <div class="pt-1">
+                  <button
+                    onclick="appState.step6PreviewOpen = !appState.step6PreviewOpen; renderMockup();"
+                    class="w-full py-2.5 px-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-gblue font-bold text-xs border border-gblue/30 flex items-center justify-center gap-2 transition cursor-pointer"
+                  >
+                    <span>🌐</span>
+                    <span>${previewOpen ? '關閉部署網頁預覽畫面' : '點擊模擬開啟 /exec 網頁預覽畫面'}</span>
+                  </button>
+                </div>
+
+                <!-- 模擬瀏覽器實機預覽區 -->
+                ${previewOpen ? `
+                  <div class="rounded-xl border-2 border-gblue/40 overflow-hidden shadow-inner fade-in">
+                    <div class="bg-slate-100 px-3 py-1.5 text-[10px] font-mono text-slate-500 border-b border-slate-200 truncate">
+                      ${DEMO_EXEC_URL}
+                    </div>
+                    <div class="p-6 bg-slate-50 text-center">
+                      <div class="bg-white p-5 rounded-2xl shadow-md max-w-xs mx-auto border border-slate-100">
+                        <h4 class="text-base font-bold text-gblue mb-1.5">🎉 網頁部署成功！</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                          這個靜態 HTML 網頁正透過 Google Apps Script 免費託管運行中。
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <button onclick="appState.step6Tab = 'update'; renderMockup();" class="text-xs font-bold text-amber-700 hover:underline cursor-pointer">
+                  👉 必看：日後改了程式碼怎麼更新？
+                </button>
+                <span class="px-4 py-1.5 rounded-lg bg-gblue text-white text-xs font-bold">完成</span>
+              </div>
+            </div>
+          ` : `
+            <!-- 日後修改如何更新版本圖解 -->
+            <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full mx-auto p-5 border border-slate-200 fade-in">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <h4 class="text-sm font-bold text-slate-900">🔄 修改程式碼後，如何讓原網址同步更新？</h4>
+                <span class="text-xs font-bold text-gred">重要觀念</span>
+              </div>
+
+              <!-- 三步驟切換進度 -->
+              <div class="grid grid-cols-3 gap-2 mb-4 text-center text-xs">
+                <button onclick="appState.step6UpdateStep = 0; renderMockup();" class="py-2 px-2 rounded-xl font-bold cursor-pointer ${updateStep === 0 ? 'bg-gblue text-white' : 'bg-slate-100 text-slate-600'}">
+                  1. 管理部署作業
+                </button>
+                <button onclick="appState.step6UpdateStep = 1; renderMockup();" class="py-2 px-2 rounded-xl font-bold cursor-pointer ${updateStep === 1 ? 'bg-gblue text-white' : 'bg-slate-100 text-slate-600'}">
+                  2. 點擊編輯鉛筆
+                </button>
+                <button onclick="appState.step6UpdateStep = 2; renderMockup();" class="py-2 px-2 rounded-xl font-bold cursor-pointer ${updateStep === 2 ? 'bg-gblue text-white' : 'bg-slate-100 text-slate-600'}">
+                  3. 建立新版本
+                </button>
+              </div>
+
+              ${updateStep === 0 ? `
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                  <p class="text-xs text-slate-700">
+                    修改完 <code class="font-mono font-bold">index.html</code> 並存檔後，點擊右上角藍色 <strong>「部署」</strong> 按鈕，這次請選第二項：
+                  </p>
+                  <div class="w-56 bg-white rounded-xl shadow-md border border-slate-200 p-1.5 space-y-1">
+                    <div class="px-3 py-1.5 text-xs text-slate-400">新增部署作業（不要選這個，網址會變）</div>
+                    <button onclick="appState.step6UpdateStep = 1; renderMockup();" class="w-full px-3 py-2 rounded-lg bg-red-50 hotspot-box text-left text-xs font-bold text-slate-900 cursor-pointer">
+                      管理部署作業 →
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${updateStep === 1 ? `
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                  <p class="text-xs text-slate-700">
+                    進入「管理部署作業」視窗後，點擊右上角的 <strong>「編輯（鉛筆圖示 ✎）」</strong>：
+                  </p>
+                  <div class="bg-white rounded-xl border border-slate-200 p-3.5 flex items-center justify-between">
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">初版靜態網頁發布</div>
+                      <div class="text-[11px] text-slate-500">目前線上版本：版本 1</div>
+                    </div>
+                    <button onclick="appState.step6UpdateStep = 2; renderMockup();" class="px-3 py-2 rounded-lg bg-red-50 hotspot-box text-sm font-bold text-gred cursor-pointer" title="編輯部署作業">
+                      ✎ 編輯
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${updateStep === 2 ? `
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                  <p class="text-xs text-slate-700">
+                    將「版本」下拉選單從原本的「版本 1」改選為 <strong class="text-gred">「建立新版本」</strong>，再按右下角 <strong>「部署」</strong> 即完成！
+                  </p>
+                  <div class="bg-white rounded-xl border-2 border-gred p-3 flex items-center justify-between">
+                    <div>
+                      <div class="text-[10px] font-bold text-gred">版本下拉選單</div>
+                      <div class="text-xs font-bold text-slate-900">建立新版本（將產生 版本 2）</div>
+                    </div>
+                    <span class="px-3 py-1.5 rounded-lg bg-gblue text-white text-xs font-bold">部署 ✓</span>
+                  </div>
+                  <div class="text-[11px] text-emerald-700 font-semibold">
+                    🎉 完成！原本的 /exec 網址不變，重新整理網頁就會顯示最新畫面。
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // ==================== 剪貼簿複製與工具函式 ====================
+
+    // 複製步驟內的程式碼
+    function copyStepCode(stepId) {
+      const step = STEPS_DATA[stepId - 1];
+      if (!step || !step.codeBlock) return;
+      copyTextToClipboard(step.codeBlock.code, `已複製「${step.codeBlock.label}」！`);
+    }
+
+    // 使用相容於 iframe 環境的 document.execCommand('copy')
+    function copyTextToClipboard(text, successMsg) {
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        textArea.style.top = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        if (successful) {
+          showToast(successMsg || '已複製到剪貼簿！');
+        }
+      } catch (err) {
+        console.error('複製失敗:', err);
+      }
+    }
+
+    // 顯示底部浮動 Toast 訊息
+    let toastTimer = null;
+    function showToast(message) {
+      const toast = document.getElementById('toast-notification');
+      const msgEl = document.getElementById('toast-message');
+      msgEl.textContent = message;
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2600);
+    }
+
+    // HTML 字元跳脫保護
+    function escapeHTML(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
